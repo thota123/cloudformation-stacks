@@ -1,0 +1,68 @@
+%%%%%%% open source puppet installation
+
+step 1: Install puppetmaster and puppetagent
+step 2: Edit hosts and puppet configuration files in both puppetmaster and puppetagent
+step 3: Generate certificates inorder to establish connection between master and agent
+step 4: create a manifests
+
+
+step 1: Install puppetmaster and puppetagent
+
+%%%% operations on master
+1)iptables -F								%Flush the iptables
+2)service iptables save						%save the iptables
+3)rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-6.noarch.rpm   % setup path for repository by going to yum.puppetlabs.com
+4)yum install puppet-server
+ 
+%%%% operations on agent
+1)repeat steps 1 to 3 in master section
+2)yum install puppet
+ 
+step 2: configure files
+ 
+%%% operations on master
+1)ifconfig 								%inorder to get ipaddress
+2)go to vi /etc/hosts 						% inorder to set a domain name to your ip ex: 172.31.36.54 puppet puppet.testserver.com
+3)go to vi /etc/puppet/puppet.conf			% in [main] write dns_alt_names = puppet.testserver.com and certname = puppet
+4)service puppetmaster start
+
+%%%% operations on agent
+1)ifconfig 							%inorder to get ipaddress
+2)go to vi /etc/hosts 				% write dowm both master and puppet dns: 172.31.36.55 puppetagent, 172.31.36.54 puppet.testserver.com
+3)go to vi /etc/puppet/puppet.conf	% in [agent] set server = puppet.testserver.com 
+4)service puppet start		
+
+
+step 3: create certificates to establish connection
+`
+
+%%% operations on master
+1) service puppetmaster stop
+2) sudo -u puppet puppet master --no-daemonize --verbose
+3) puppet resource service puppetmaster ensure=running
+4) service puppetmaster status
+
+%%%% operations on agent
+1) service puppet stop
+2) puppet agent -t
+
+%%% operations on master
+1)puppet cert list					% used to list the certificates available at master server
+2)puppet cert sign <certname> 		% used to sign the available certificates
+
+%%%% operations on agent
+1) service puppet start				% start the services
+2) puppet agent -t 					
+
+
+step 4: create manifests
+
+%%% operations on master
+1) create a file name site.pp using /etc/puppet/manifests/site.pp in the master server
+2)write down the tasks that you want to perform on the agent
+
+example: 
+
+			
+%%%operations on agent
+1) puppet agent -t
